@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+
 const path = require("path");
 const booksRoutes = require("./routes/books");
 const userRoutes = require("./routes/user");
@@ -27,7 +28,6 @@ app.use(express.json());
 
 // Configuration des en-têtes CORS
 app.use((req, res, next) => {
-  res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Headers",
@@ -48,21 +48,5 @@ app.use("/images", express.static(path.join(__dirname, "images")));
 // Configuration des routes pour les livres et l'authentification
 app.use("/api/books", booksRoutes);
 app.use("/api/auth", userRoutes);
-const normalizePort = (val) => {
-  const port = parseInt(val, 10);
 
-  if (isNaN(port)) {
-    return val;
-  }
-  if (port >= 0) {
-    return port;
-  }
-  return false;
-};
-const port = normalizePort(process.env.PORT || "4000");
-app.set("port", port);
-
-app.listen(port, () => {
-  console.log(`Server started at http://localhost:${port}`);
-});
 module.exports = { app, memoryStorage };

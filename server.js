@@ -1,6 +1,7 @@
 // Importation des modules requis
 const http = require("http");
 const { app } = require("./app");
+require("dotenv").config();
 
 // Fonction pour normaliser le port
 const normalizePort = (val) => {
@@ -16,7 +17,7 @@ const normalizePort = (val) => {
 };
 
 // Détermination du port à utiliser en se basant sur l'environnement ou le port par défaut 4000
-const port = normalizePort(process.env.PORT || "8080");
+const port = normalizePort(process.env.PORT || "4000");
 app.set("port", port);
 
 // Fonction de gestion des erreurs liées au serveur
