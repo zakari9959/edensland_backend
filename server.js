@@ -1,6 +1,6 @@
 // Importation des modules requis
 const http = require("http");
-const { app } = require(".");
+const { app } = require("./app");
 
 // Fonction pour normaliser le port
 const normalizePort = (val) => {
