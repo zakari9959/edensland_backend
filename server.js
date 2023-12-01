@@ -16,7 +16,7 @@ const normalizePort = (val) => {
   return false;
 };
 
-// Détermination du port à utiliser en se basant sur l'environnement ou le port par défaut 4000
+// Détermination du port à utiliser en se basant sur l'environnement ou l port par défaut 4000
 const port = normalizePort(process.env.PORT || "4000");
 app.set("port", port);
 
