@@ -24,6 +24,7 @@ app.use(express.json());
 
 app.use((req, res, next) => {
   res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
+  res.setHeader("Content-Type", "text/html");
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Headers",
