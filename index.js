@@ -1,8 +1,53 @@
-// Importation des modules requis
-const http = require("http");
-const { app } = require("./app");
+const express = require("express");
+const mongoose = require("mongoose");
 
-// Fonction pour normaliser le port
+const path = require("path");
+const booksRoutes = require("./routes/books");
+const userRoutes = require("./routes/user");
+// Création de l'application Express
+const app = express();
+
+// INUTILE?
+const memoryStorage = [];
+
+// Configuration de la connexion à la base de données MongoDB
+require("dotenv").config();
+const MongoUserName = process.env.MONGO_USER_NAME;
+const MongoMdp = process.env.MONGO_MDP;
+const MongoUrl = process.env.MONGO_URL;
+mongoose
+  .connect(`mongodb+srv://${MongoUserName}:${MongoMdp}${MongoUrl}`, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connexion à MongoDB réussie !"))
+  .catch((error) => console.log(error));
+
+// Utilisation de JSON pour les requêtes entrantes
+app.use(express.json());
+
+// Configuration des en-têtes CORS
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content, Accept, Content-Type, Authorization"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+  );
+  res.setHeader("Vary", "Origin");
+
+  next();
+});
+
+// Configuration des routes statiques pour les images
+app.use("/images", express.static(path.join(__dirname, "images")));
+
+// Configuration des routes pour les livres et l'authentification
+app.use("/api/books", booksRoutes);
+app.use("/api/auth", userRoutes);
 const normalizePort = (val) => {
   const port = parseInt(val, 10);
 
@@ -14,45 +59,10 @@ const normalizePort = (val) => {
   }
   return false;
 };
-
-// Détermination du port à utiliser en se basant sur l'environnement ou le port par défaut 4000
 const port = normalizePort(process.env.PORT || "8080");
 app.set("port", port);
 
-// Fonction de gestion des erreurs liées au serveur
-const errorHandler = (error) => {
-  if (error.syscall !== "listen") {
-    throw error;
-  }
-  const address = server.address();
-  const bind =
-    typeof address === "string" ? "pipe " + address : "port: " + port;
-  switch (error.code) {
-    case "EACCES":
-      console.error(bind + " nécessite des privilèges élevés.");
-      process.exit(1);
-      break;
-    case "EADDRINUSE":
-      console.error(bind + " est déjà utilisé.");
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
-};
-
-// Création du serveur HTTP en utilisant l'application Express
-const server = http.createServer(app);
-
-// Gestionnaire d'erreur du serveur
-server.on("error", errorHandler);
-
-// Écoute de l'événement de démarrage du serveur
-server.on("listening", () => {
-  const address = server.address();
-  const bind = typeof address === "string" ? "pipe " + address : "port " + port;
-  console.log("Listening on " + bind);
+app.listen(8080, () => {
+  console.log("Server started at http://localhost:8080");
 });
-
-// Démarrage du serveur en écoutant le port spécifié
-server.listen(port);
+module.exports = { app, memoryStorage };
