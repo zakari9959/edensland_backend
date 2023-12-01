@@ -1,6 +1,5 @@
 const express = require("express");
 const mongoose = require("mongoose");
-
 const path = require("path");
 const booksRoutes = require("./routes/books");
 const userRoutes = require("./routes/user");
@@ -60,7 +59,7 @@ const normalizePort = (val) => {
   }
   return false;
 };
-const port = normalizePort(process.env.PORT || "8080");
+const port = normalizePort(process.env.PORT);
 app.set("port", port);
 
 app.listen(8080, () => {
