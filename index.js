@@ -28,6 +28,7 @@ app.use(express.json());
 
 // Configuration des en-têtes CORS
 app.use((req, res, next) => {
+  res.setHeader("Cache-Control", "s-max-age=1, stale-while-revalidate");
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Headers",
