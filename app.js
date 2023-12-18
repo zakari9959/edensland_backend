@@ -7,9 +7,6 @@ const userRoutes = require("./routes/user");
 // Création de l'application Express
 const app = express();
 
-// INUTILE?
-const memoryStorage = [];
-
 // Configuration de la connexion à la base de données MongoDB
 require("dotenv").config();
 const MongoUserName = process.env.MONGO_USER_NAME;
@@ -42,11 +39,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Configuration des routes statiques pour les images
-app.use("/images", express.static(path.join(__dirname, "images")));
-
 // Configuration des routes pour les livres et l'authentification
 app.use("/api/books", booksRoutes);
 app.use("/api/auth", userRoutes);
 
-module.exports = { app, memoryStorage };
+module.exports = { app };

@@ -1,17 +1,22 @@
+const { generatePresignedUrl } = require("../middleware/aws-s3");
 const Book = require("../models/book");
 const fs = require("fs");
 
-exports.createBook = (req, res, next) => {
+exports.createBook = async (req, res, next) => {
   const bookObject = JSON.parse(req.body.book);
   delete bookObject.userId;
+  console.log(bookObject);
+  console.log(req.file.name);
   const book = new Book({
     ...bookObject,
     userId: req.auth.userId,
-    imageUrl: `${req.protocol}://${req.get("host")}/images/${req.file.name}`,
+    imageUrlKey: req.file.name,
   });
+  console.log(book);
   book
     .save()
     .then(() => {
+      console.log("okok", book);
       res.status(201).json({ message: "Livre enregistré !" });
     })
     .catch((error) => {
@@ -57,41 +62,62 @@ exports.modifyBook = (req, res, next) => {
 exports.deleteBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })
     .then((book) => {
+      if (!book) {
+        return res.status(404).json({ message: "Livre non trouvé" });
+      }
+
       if (book.userId != req.auth.userId) {
-        res
+        return res
           .status(401)
           .json({ message: "Compte non autorisé à supprimer ce livre" });
       } else {
-        // Supprime le fichier image associé au livre
-        const filename = book.imageUrl.split("/images/")[1];
-        fs.unlink(`images/${filename}`, () => {
-          // Supprime le livre de la base de données
-          Book.deleteOne({ _id: req.params.id })
-            .then(() => {
-              res.status(200).json({ message: "Livre supprimé !" });
-            })
-            .catch((error) => res.status(401).json({ error }));
-        });
+        Book.deleteOne({ _id: req.params.id })
+          .then(() => {
+            console.log("Livre supprimé avec succès !");
+            res.status(200).json({ message: "Livre supprimé !" });
+          })
+          .catch((error) => {
+            console.error("Erreur lors de la suppression :", error);
+            res
+              .status(500)
+              .json({ error: "Erreur lors de la suppression du livre" });
+          });
       }
     })
     .catch((error) => {
-      res.status(500).json({ error });
+      console.error("Erreur lors de la recherche du livre :", error);
+      res.status(500).json({ error: "Erreur lors de la recherche du livre" });
     });
 };
+
 exports.getOneBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })
     .then((book) => res.status(200).json(book))
     .catch((error) => res.status(404).json({ error }));
 };
 
-exports.getAllBook = (req, res, next) => {
-  Book.find({ userId: req.auth.userId })
-    .then((books) => {
-      console.log("Livres récupérés avec succès :", books);
-      res.status(200).json(books);
-    })
-    .catch((error) => {
-      console.error("Erreur lors de la recherche des livres :", error);
-      res.status(400).json({ error });
-    });
+exports.getAllBook = async (req, res, next) => {
+  try {
+    const books = await Book.find({ userId: req.auth.userId });
+    console.log("livres", books);
+    // Parcourir tous les livres et ajouter l'URL signée à chacun
+    const booksWithSignedUrls = await Promise.all(
+      books.map(async (book) => {
+        book.imageUrlKey
+          ? console.log(book.imageUrlKey)
+          : console.log("no image url key");
+        const signedUrl = await generatePresignedUrl(book.imageUrlKey);
+        return {
+          ...book.toObject(),
+          imageUrl: signedUrl,
+        };
+      })
+    );
+
+    console.log("Livres récupérés avec succès :", booksWithSignedUrls);
+    res.status(200).json(booksWithSignedUrls);
+  } catch (error) {
+    console.error("Erreur lors de la recherche des livres :", error);
+    res.status(400).json({ error });
+  }
 };

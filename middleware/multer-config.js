@@ -1,7 +1,8 @@
 const multer = require("multer");
 
 // Configure le stockage en mémoire pour les fichiers téléchargés
-const storage = multer.memoryStorage();
-const upload = multer(storage);
+const uploadMulter = multer({ storage: multer.memoryStorage() }).single(
+  "imageUrl"
+);
 
-module.exports = upload;
+module.exports = { uploadMulter };

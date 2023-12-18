@@ -5,6 +5,7 @@ const bookSchema = mongoose.Schema({
   title: { type: String, required: true },
   age: { type: String, required: true },
   imageUrl: { type: String, required: false },
+  imageUrlKey: { type: String, required: true },
   personnageDescription: { type: String, required: false },
   text: { type: Array, required: true },
 });
