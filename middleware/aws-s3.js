@@ -19,21 +19,26 @@ const s3Config = {
 const s3 = new S3Client(s3Config);
 
 const uploadFile = async function (req, res, next) {
-  const putObjectParams = {
-    Bucket: process.env.AWS_BUCKET_NAME,
-    Key: req.file.name,
-    Body: req.file.buffer,
-    ContentType: req.file.mimetype,
-  };
-  const putObjectCommand = new PutObjectCommand(putObjectParams);
-  try {
-    await s3.send(putObjectCommand);
-    console.log("File uploaded successfully");
+  if (req.file && req.file.mimetype.startsWith("image/")) {
+    const putObjectParams = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: req.file.name,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+    };
+    const putObjectCommand = new PutObjectCommand(putObjectParams);
+
+    try {
+      await s3.send(putObjectCommand);
+      console.log("File uploaded successfully");
+      next();
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      next();
+      throw error;
+    }
+  } else {
     next();
-  } catch (error) {
-    console.error("Error uploading file:", error);
-    next();
-    throw error;
   }
 };
 
