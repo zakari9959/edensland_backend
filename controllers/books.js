@@ -23,13 +23,11 @@ exports.createBook = async (req, res, next) => {
 
     res.status(201).json({ message: "Livre enregistré !" });
   } catch (error) {
-    res
-      .status(400)
-      .json({
-        error:
-          error.message ||
-          "Une erreur s'est produite lors de l'enregistrement du livre.",
-      });
+    res.status(400).json({
+      error:
+        error.message ||
+        "Une erreur s'est produite lors de l'enregistrement du livre.",
+    });
   }
 };
 
@@ -72,18 +70,19 @@ exports.getOneBook = (req, res, next) => {
 exports.getAllBook = async (req, res, next) => {
   try {
     const books = await Book.find({ userId: req.auth.userId });
-    console.log("livres", books);
-    // Parcourir tous les livres et ajouter l'URL signée à chacun
     const booksWithSignedUrls = await Promise.all(
       books.map(async (book) => {
-        book.imageUrlKey
-          ? console.log(book.imageUrlKey)
-          : console.log("no image url key");
-        const signedUrl = await generatePresignedUrl(book.imageUrlKey);
-        return {
-          ...book.toObject(),
-          imageUrl: signedUrl,
-        };
+        if (book.imageUrlKey) {
+          console.log("Image URL key found:", book.imageUrlKey);
+          const signedUrl = await generatePresignedUrl(book.imageUrlKey);
+          return {
+            ...book.toObject(),
+            imageUrl: signedUrl,
+          };
+        } else {
+          console.log("No image URL key for this book");
+          return book.toObject();
+        }
       })
     );
 
