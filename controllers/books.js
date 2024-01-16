@@ -18,10 +18,15 @@ exports.createBook = async (req, res, next) => {
       userId: req.auth.userId,
       imageUrlKey: imageUrlKey,
     });
-
     await book.save();
-
-    res.status(201).json({ message: "Livre enregistré !", book: book });
+    const signedUrl = await generatePresignedUrl(book.imageUrlKey);
+    const bookWithSignedUrl = {
+      ...book.toObject(),
+      signedUrl: signedUrl,
+    };
+    res
+      .status(201)
+      .json({ message: "Livre enregistré !", book: bookWithSignedUrl });
   } catch (error) {
     res.status(400).json({
       error:
@@ -85,7 +90,6 @@ exports.getAllBook = async (req, res, next) => {
         }
       })
     );
-
     console.log("Livres récupérés avec succès :", booksWithSignedUrls);
     res.status(200).json(booksWithSignedUrls);
   } catch (error) {
