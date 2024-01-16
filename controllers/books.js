@@ -1,4 +1,4 @@
-const { generatePresignedUrl } = require("../middleware/aws-s3");
+const { generatePresignedUrl, deleteImage } = require("../middleware/aws-s3");
 const Book = require("../models/book");
 const fs = require("fs");
 exports.createBook = async (req, res, next) => {
@@ -36,34 +36,24 @@ exports.createBook = async (req, res, next) => {
   }
 };
 
-exports.deleteBook = (req, res, next) => {
-  Book.findOne({ _id: req.params.id })
-    .then((book) => {
-      if (!book) {
-        return res.status(404).json({ message: "Livre non trouvé" });
-      }
-
-      if (book.userId != req.auth.userId) {
-        return res
-          .status(401)
-          .json({ message: "Compte non autorisé à supprimer ce livre" });
-      } else {
-        Book.deleteOne({ _id: req.params.id })
-          .then(() => {
-            res.status(200).json({ message: "Livre supprimé !" });
-          })
-          .catch((error) => {
-            console.error("Erreur lors de la suppression :", error);
-            res
-              .status(500)
-              .json({ error: "Erreur lors de la suppression du livre" });
-          });
-      }
-    })
-    .catch((error) => {
-      console.error("Erreur lors de la recherche du livre :", error);
-      res.status(500).json({ error: "Erreur lors de la recherche du livre" });
-    });
+exports.deleteBook = async (req, res, next) => {
+  try {
+    const book = await Book.findOne({ _id: req.params.id });
+    if (!book) {
+      return res.status(404).json({ message: "Livre non trouvé" });
+    }
+    if (book.userId !== req.auth.userId) {
+      return res
+        .status(401)
+        .json({ message: "Compte non autorisé à supprimer ce livre" });
+    }
+    await deleteImage(book.imageUrlKey);
+    await Book.deleteOne({ _id: req.params.id });
+    res.status(200).json({ message: "Livre supprimé !" });
+  } catch (error) {
+    console.error("Erreur lors de la suppression :", error);
+    res.status(500).json({ error: "Erreur lors de la suppression du livre" });
+  }
 };
 
 exports.getOneBook = (req, res, next) => {
