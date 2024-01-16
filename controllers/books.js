@@ -22,7 +22,7 @@ exports.createBook = async (req, res, next) => {
     const signedUrl = await generatePresignedUrl(book.imageUrlKey);
     const bookWithSignedUrl = {
       ...book.toObject(),
-      signedUrl: signedUrl,
+      imageUrl: signedUrl,
     };
     res
       .status(201)
