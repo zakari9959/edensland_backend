@@ -63,7 +63,7 @@ const generatePresignedUrl = async (imageUrlKey) => {
     Bucket: process.env.AWS_BUCKET_NAME,
     Key: imageUrlKey,
   });
-  const imageUrl = await getSignedUrl(s3Client, getObjectCommand, {
+  const imageUrl = await getSignedUrl(s3, getObjectCommand, {
     expiresIn: 3600,
   });
   return imageUrl;
